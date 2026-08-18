@@ -1,5 +1,5 @@
 import { PrismaClient } from "../src/generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { hashPassword } from "../src/lib/password";
 
 /**
@@ -8,10 +8,14 @@ import { hashPassword } from "../src/lib/password";
  */
 const SEED_PASSWORD = "Razeem@2026";
 
-// Create Prisma client with SQLite adapter for seeding
-const adapter = new PrismaBetterSqlite3({
-  url: "file:./prisma/dev.db",
-});
+// Seeding talks to the same database the app does, through the same adapter.
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not set — seeding needs a database.");
+}
+
+const adapter = new PrismaMariaDb(databaseUrl);
 
 const prisma = new PrismaClient({ adapter });
 

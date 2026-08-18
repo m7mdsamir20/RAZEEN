@@ -25,6 +25,15 @@ function languageAlternates(path: string) {
   );
 }
 
+/**
+ * Generated per request rather than at build time.
+ *
+ * Two reasons: new listings appear in the sitemap without a redeploy, and the
+ * build no longer needs a reachable database — which matters when the site is
+ * built on a host that provisions the database separately.
+ */
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
 
@@ -41,12 +50,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // Approved listings only — pending and rejected ones are not public.
-  const properties = await prisma.property.findMany({
-    where: { status: "APPROVED", dealStatus: null },
-    select: { id: true, updatedAt: true },
-    orderBy: { updatedAt: "desc" },
-    take: 5000,
-  });
+  // A database that is briefly unreachable costs the listing URLs, not the
+  // whole sitemap: the static routes are still worth serving.
+  let properties: { id: string; updatedAt: Date }[] = [];
+
+  try {
+    properties = await prisma.property.findMany({
+      where: { status: "APPROVED", dealStatus: null },
+      select: { id: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+      take: 5000,
+    });
+  } catch (error) {
+    console.error("sitemap: could not load properties:", error);
+  }
 
   for (const property of properties) {
     const path = `/properties/${property.id}`;

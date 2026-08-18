@@ -11,15 +11,15 @@
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset && npx tsx prisma/seed.ts",
-    "backfill:locations": "npx tsx scripts/backfill-locations.ts"
+    "backfill:locations": "npx tsx scripts/backfill-locations.ts",
+    "postinstall": "prisma generate",
+    "make:admin": "npx tsx scripts/make-admin.ts"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.9.1",
     "@prisma/adapter-mariadb": "^7.9.1",
-    "better-sqlite3": "^13.0.3",
     "iron-session": "^8.0.4",
     "mariadb": "^3.5.3",
     "next": "16.3.0",
@@ -32,7 +32,6 @@
   "devDependencies": {
     "@prisma/client": "^7.9.1",
     "@tailwindcss/postcss": "^4",
-    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -45,5 +44,8 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

@@ -1,5 +1,5 @@
 // Prisma Schema — Razeem Real Estate (رزيم العقارية)
-// Database: SQLite (development) → MySQL/MariaDB (production)
+// Database: MariaDB (MySQL-compatible), in development and production alike.
 
 generator client {
   provider = "prisma-client"
@@ -7,7 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  // Prisma 7 takes the connection URL from prisma.config.ts for the CLI, and
+  // from the driver adapter at runtime — never from this block.
+  provider = "mysql"
 }
 
 // ============================================

@@ -47,10 +47,6 @@ next-env.d.ts
 /public/uploads/*
 !/public/uploads/.gitkeep
 
-# SQLite database
-prisma/dev.db
-prisma/dev.db-journal
-
 # prisma generated files
 skills-lock.json
 
