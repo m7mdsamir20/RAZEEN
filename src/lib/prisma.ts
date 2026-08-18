@@ -26,10 +26,11 @@ function createPrismaClient() {
     database: creds.database,
   });
 
-  // ── Diagnostic: test a raw connection to surface the real error ────
+  // ── Diagnostic: test raw connections to surface the real error ─────
+  // Test 1: localhost (Unix socket)
   mariadb
     .createConnection({
-      host: creds.host,
+      host: "localhost",
       port: creds.port,
       user: creds.user,
       password: creds.password,
@@ -37,11 +38,30 @@ function createPrismaClient() {
       connectTimeout: 10_000,
     })
     .then((conn) => {
-      console.log("[DB] ✅ Direct connection test SUCCEEDED");
+      console.log("[DB] ✅ localhost (socket) connection SUCCEEDED");
       conn.end();
     })
     .catch((err) => {
-      console.error("[DB] ❌ Direct connection test FAILED:", err.message);
+      console.error("[DB] ❌ localhost (socket) FAILED:", err.message);
+      console.error("[DB] Error code:", err.code, "| errno:", err.errno);
+    });
+
+  // Test 2: 127.0.0.1 (TCP)
+  mariadb
+    .createConnection({
+      host: "127.0.0.1",
+      port: creds.port,
+      user: creds.user,
+      password: creds.password,
+      database: creds.database,
+      connectTimeout: 10_000,
+    })
+    .then((conn) => {
+      console.log("[DB] ✅ 127.0.0.1 (TCP) connection SUCCEEDED");
+      conn.end();
+    })
+    .catch((err) => {
+      console.error("[DB] ❌ 127.0.0.1 (TCP) FAILED:", err.message);
       console.error("[DB] Error code:", err.code, "| errno:", err.errno);
     });
 
@@ -69,13 +89,8 @@ function createPrismaClient() {
 function parseConnectionString(url: string) {
   const parsed = new URL(url);
 
-  // Force TCP/IP: the mariadb driver uses a Unix socket when it sees
-  // "localhost", which is usually inaccessible on shared hosting.
-  let host = parsed.hostname;
-  if (host === "localhost") host = "127.0.0.1";
-
   return {
-    host,
+    host: parsed.hostname || "localhost",
     port: parsed.port ? Number(parsed.port) : 3306,
     user: decodeURIComponent(parsed.username),
     password: decodeURIComponent(parsed.password),
