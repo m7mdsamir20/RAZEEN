@@ -1,6 +1,5 @@
 import { PrismaClient } from "../generated/prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
-import mariadb from "mariadb";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -14,8 +13,6 @@ function getCredentials() {
   // Prefer individual vars — no URL-encoding headaches.
   if (process.env.DB_USER && process.env.DB_PASSWORD && process.env.DB_NAME) {
     return {
-      host: process.env.DB_HOST || "localhost",
-      port: Number(process.env.DB_PORT || 3306),
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
@@ -32,85 +29,59 @@ function getCredentials() {
 
   const parsed = new URL(url);
   return {
-    host: parsed.hostname || "localhost",
-    port: parsed.port ? Number(parsed.port) : 3306,
     user: decodeURIComponent(parsed.username),
     password: decodeURIComponent(parsed.password),
     database: parsed.pathname.replace(/^\//, ""),
   };
 }
 
-// Common MySQL socket paths on Linux shared hosting.
-const SOCKET_PATHS = [
-  "/var/run/mysqld/mysqld.sock",
-  "/var/lib/mysql/mysql.sock",
-  "/tmp/mysql.sock",
-  "/run/mysqld/mysqld.sock",
-];
-
 function createPrismaClient() {
   const creds = getCredentials();
 
-  // ── Diagnostic: log credentials (password partially masked) ───────
-  const pw = creds.password || "";
-  const masked =
-    pw.length <= 3
-      ? "***"
-      : pw.slice(0, 2) + "*".repeat(pw.length - 3) + pw.slice(-1);
-  console.error("[DB] Credentials:", {
-    host: creds.host,
-    port: creds.port,
-    user: creds.user,
-    password: `${masked} (len=${pw.length})`,
-    database: creds.database,
-    source: process.env.DB_USER ? "individual vars" : "DATABASE_URL",
-  });
+  // On Hostinger shared hosting, the MySQL user is granted access from
+  // 'localhost' only — which means Unix socket, not TCP. The mariadb driver
+  // resolves "localhost" to ::1 (IPv6 TCP) on Linux, so we must specify
+  // the socket path explicitly.
+  //
+  // For local development (DATABASE_URL with host/port), we fall back to TCP.
+  const isHostinger = !!process.env.DB_USER;
+  const socketPath =
+    process.env.DB_SOCKET || "/var/lib/mysql/mysql.sock";
 
-  // ── Diagnostic: try every connection method ───────────────────────
-  // Method 1: TCP via 127.0.0.1 (IPv4)
-  mariadb
-    .createConnection({
-      host: "127.0.0.1",
-      port: creds.port,
-      user: creds.user,
-      password: creds.password,
-      database: creds.database,
-      connectTimeout: 5_000,
-    })
-    .then((conn) => {
-      console.error("[DB] ✅ 127.0.0.1 (IPv4 TCP) SUCCEEDED");
-      conn.end();
-    })
-    .catch((err) => {
-      console.error("[DB] ❌ 127.0.0.1 (IPv4 TCP):", err.code, err.message);
-    });
-
-  // Method 2: Try each known Unix socket path
-  for (const socketPath of SOCKET_PATHS) {
-    mariadb
-      .createConnection({
+  const connectionConfig = isHostinger
+    ? {
         socketPath,
         user: creds.user,
         password: creds.password,
         database: creds.database,
-        connectTimeout: 5_000,
-      })
-      .then((conn) => {
-        console.error(`[DB] ✅ Socket ${socketPath} SUCCEEDED`);
-        conn.end();
-      })
-      .catch((err) => {
-        console.error(`[DB] ❌ Socket ${socketPath}:`, err.code, err.message);
-      });
-  }
+      }
+    : {
+        host: (() => {
+          const url = process.env.DATABASE_URL!;
+          const parsed = new URL(url);
+          return parsed.hostname || "localhost";
+        })(),
+        port: (() => {
+          const url = process.env.DATABASE_URL!;
+          const parsed = new URL(url);
+          return parsed.port ? Number(parsed.port) : 3306;
+        })(),
+        user: creds.user,
+        password: creds.password,
+        database: creds.database,
+      };
 
-  // Use the configured host for the actual adapter connection.
+  console.error("[DB] Connection config:", {
+    ...connectionConfig,
+    password: "***",
+  });
+
   const adapter = new PrismaMariaDb({
     connectionLimit: 3,
     idleTimeout: 30,
     connectTimeout: 30_000,
     acquireTimeout: 30_000,
-    ...creds,
+    ...connectionConfig,
   });
 
   return new PrismaClient({ adapter });
