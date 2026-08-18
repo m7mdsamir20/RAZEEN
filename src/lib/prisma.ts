@@ -40,6 +40,14 @@ function getCredentials() {
   };
 }
 
+// Common MySQL socket paths on Linux shared hosting.
+const SOCKET_PATHS = [
+  "/var/run/mysqld/mysqld.sock",
+  "/var/lib/mysql/mysql.sock",
+  "/tmp/mysql.sock",
+  "/run/mysqld/mysqld.sock",
+];
+
 function createPrismaClient() {
   const creds = getCredentials();
 
@@ -48,8 +56,8 @@ function createPrismaClient() {
   const masked =
     pw.length <= 3
       ? "***"
-      : pw[0] + "*".repeat(pw.length - 2) + pw[pw.length - 1];
-  console.log("[DB] Connecting with:", {
+      : pw.slice(0, 2) + "*".repeat(pw.length - 3) + pw.slice(-1);
+  console.error("[DB] Credentials:", {
     host: creds.host,
     port: creds.port,
     user: creds.user,
@@ -58,26 +66,45 @@ function createPrismaClient() {
     source: process.env.DB_USER ? "individual vars" : "DATABASE_URL",
   });
 
-  // ── Diagnostic: test a direct connection ──────────────────────────
+  // ── Diagnostic: try every connection method ───────────────────────
+  // Method 1: TCP via 127.0.0.1 (IPv4)
   mariadb
     .createConnection({
-      host: creds.host,
+      host: "127.0.0.1",
       port: creds.port,
       user: creds.user,
       password: creds.password,
       database: creds.database,
-      connectTimeout: 10_000,
+      connectTimeout: 5_000,
     })
     .then((conn) => {
-      console.log("[DB] ✅ Direct connection test SUCCEEDED");
+      console.error("[DB] ✅ 127.0.0.1 (IPv4 TCP) SUCCEEDED");
       conn.end();
     })
     .catch((err) => {
-      console.error("[DB] ❌ Direct connection FAILED:", err.message);
-      console.error("[DB] Error code:", err.code, "| errno:", err.errno);
+      console.error("[DB] ❌ 127.0.0.1 (IPv4 TCP):", err.code, err.message);
     });
 
-  // Shared hosting (Hostinger) has tight MySQL connection limits.
+  // Method 2: Try each known Unix socket path
+  for (const socketPath of SOCKET_PATHS) {
+    mariadb
+      .createConnection({
+        socketPath,
+        user: creds.user,
+        password: creds.password,
+        database: creds.database,
+        connectTimeout: 5_000,
+      })
+      .then((conn) => {
+        console.error(`[DB] ✅ Socket ${socketPath} SUCCEEDED`);
+        conn.end();
+      })
+      .catch((err) => {
+        console.error(`[DB] ❌ Socket ${socketPath}:`, err.code, err.message);
+      });
+  }
+
+  // Use the configured host for the actual adapter connection.
   const adapter = new PrismaMariaDb({
     connectionLimit: 3,
     idleTimeout: 30,
