@@ -14,15 +14,19 @@ function createPrismaClient() {
     );
   }
 
-  // A pool rather than a single connection: serverless-style request handling
-  // opens and closes connections constantly, and MariaDB hosting caps how many
-  // may be open at once.
+  const creds = parseConnectionString(url);
+
+  // Shared hosting (Hostinger) has tight MySQL connection limits.
+  // Keep the pool small to stay within quota, and give the DB more
+  // time to respond on cold starts.
   const adapter = new PrismaMariaDb({
-    connectionLimit: 10,
+    connectionLimit: 3,
     // Shared hosting drops idle connections; reconnect rather than fail.
-    idleTimeout: 60,
-    connectTimeout: 10_000,
-    ...parseConnectionString(url),
+    idleTimeout: 30,
+    connectTimeout: 30_000,
+    // How long to wait for a free slot in the pool before giving up.
+    acquireTimeout: 30_000,
+    ...creds,
   });
 
   return new PrismaClient({ adapter });
@@ -36,8 +40,13 @@ function createPrismaClient() {
 function parseConnectionString(url: string) {
   const parsed = new URL(url);
 
+  // Force TCP/IP: the mariadb driver uses a Unix socket when it sees
+  // "localhost", which is usually inaccessible on shared hosting.
+  let host = parsed.hostname;
+  if (host === "localhost") host = "127.0.0.1";
+
   return {
-    host: parsed.hostname,
+    host,
     port: parsed.port ? Number(parsed.port) : 3306,
     user: decodeURIComponent(parsed.username),
     password: decodeURIComponent(parsed.password),
