@@ -38,9 +38,13 @@ mysql://USER:PASSWORD@HOST:3306/DATABASE
 |:---|:---|
 | `DATABASE_URL` | رابط MariaDB من الخطوة السابقة |
 | `SESSION_SECRET` | **ولّد قيمة جديدة** — لا تستخدم قيمة التطوير |
-| `NEXT_PUBLIC_APP_URL` | دومين الموقع، مثل `https://razeem.sa` |
+| `NEXT_PUBLIC_SITE_URL` | دومين الموقع، مثل `https://razeemre.com` |
 | `SMS_PROVIDER` | `authentica` بدل `console` |
 | `AUTHENTICA_API_KEY` | مفتاح الرسائل الحقيقي |
+
+> ⚠️ **المتغيرات التي تبدأ بـ `NEXT_PUBLIC_` تُدمج داخل الصفحات وقت البناء.**
+> يجب إدخالها **قبل** أول عملية بناء — وإن غيّرتها لاحقاً فلن تسري إلا بعد
+> إعادة بناء المشروع.
 
 لتوليد مفتاح جلسات جديد:
 

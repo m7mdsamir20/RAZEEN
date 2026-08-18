@@ -7,10 +7,15 @@
  * value in this file updates the whole site.
  */
 
-/** Canonical origin, used for absolute URLs in metadata and the sitemap. */
+/**
+ * Canonical origin, used for absolute URLs in metadata and the sitemap.
+ *
+ * Read at build time, so it has to be set before `next build` runs — setting
+ * it only at runtime leaves the placeholder baked into the pages.
+ */
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-  "https://razeem.example.com";
+  "http://localhost:3000";
 
 export const CONTACT = {
   email: "info@razeem.sa",
