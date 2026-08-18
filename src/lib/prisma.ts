@@ -6,89 +6,31 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-function createPrismaClient() {
-  const url = process.env.DATABASE_URL;
+/**
+ * Build credentials from either individual env vars (preferred on hosting)
+ * or from the legacy DATABASE_URL connection string.
+ */
+function getCredentials() {
+  // Prefer individual vars — no URL-encoding headaches.
+  if (process.env.DB_USER && process.env.DB_PASSWORD && process.env.DB_NAME) {
+    return {
+      host: process.env.DB_HOST || "localhost",
+      port: Number(process.env.DB_PORT || 3306),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+    };
+  }
 
+  // Fall back to DATABASE_URL for local development.
+  const url = process.env.DATABASE_URL;
   if (!url) {
     throw new Error(
-      "DATABASE_URL is not set. Copy .env.example to .env and fill it in."
+      "Neither DB_USER/DB_PASSWORD/DB_NAME nor DATABASE_URL is set."
     );
   }
 
-  const creds = parseConnectionString(url);
-
-  // ── Diagnostic: log parsed credentials (password masked) ──────────
-  console.log("[DB] Connecting with:", {
-    host: creds.host,
-    port: creds.port,
-    user: creds.user,
-    password: creds.password ? "***" + creds.password.slice(-3) : "(empty)",
-    database: creds.database,
-  });
-
-  // ── Diagnostic: test raw connections to surface the real error ─────
-  // Test 1: localhost (Unix socket)
-  mariadb
-    .createConnection({
-      host: "localhost",
-      port: creds.port,
-      user: creds.user,
-      password: creds.password,
-      database: creds.database,
-      connectTimeout: 10_000,
-    })
-    .then((conn) => {
-      console.log("[DB] ✅ localhost (socket) connection SUCCEEDED");
-      conn.end();
-    })
-    .catch((err) => {
-      console.error("[DB] ❌ localhost (socket) FAILED:", err.message);
-      console.error("[DB] Error code:", err.code, "| errno:", err.errno);
-    });
-
-  // Test 2: 127.0.0.1 (TCP)
-  mariadb
-    .createConnection({
-      host: "127.0.0.1",
-      port: creds.port,
-      user: creds.user,
-      password: creds.password,
-      database: creds.database,
-      connectTimeout: 10_000,
-    })
-    .then((conn) => {
-      console.log("[DB] ✅ 127.0.0.1 (TCP) connection SUCCEEDED");
-      conn.end();
-    })
-    .catch((err) => {
-      console.error("[DB] ❌ 127.0.0.1 (TCP) FAILED:", err.message);
-      console.error("[DB] Error code:", err.code, "| errno:", err.errno);
-    });
-
-  // Shared hosting (Hostinger) has tight MySQL connection limits.
-  // Keep the pool small to stay within quota, and give the DB more
-  // time to respond on cold starts.
-  const adapter = new PrismaMariaDb({
-    connectionLimit: 3,
-    // Shared hosting drops idle connections; reconnect rather than fail.
-    idleTimeout: 30,
-    connectTimeout: 30_000,
-    // How long to wait for a free slot in the pool before giving up.
-    acquireTimeout: 30_000,
-    ...creds,
-  });
-
-  return new PrismaClient({ adapter });
-}
-
-/**
- * The adapter takes either a connection string or a config object. Passing the
- * object lets the pool settings above sit alongside the credentials, so the
- * URL stays the single place the host, user and database are configured.
- */
-function parseConnectionString(url: string) {
   const parsed = new URL(url);
-
   return {
     host: parsed.hostname || "localhost",
     port: parsed.port ? Number(parsed.port) : 3306,
@@ -98,6 +40,55 @@ function parseConnectionString(url: string) {
   };
 }
 
+function createPrismaClient() {
+  const creds = getCredentials();
+
+  // ── Diagnostic: log credentials (password partially masked) ───────
+  const pw = creds.password || "";
+  const masked =
+    pw.length <= 3
+      ? "***"
+      : pw[0] + "*".repeat(pw.length - 2) + pw[pw.length - 1];
+  console.log("[DB] Connecting with:", {
+    host: creds.host,
+    port: creds.port,
+    user: creds.user,
+    password: `${masked} (len=${pw.length})`,
+    database: creds.database,
+    source: process.env.DB_USER ? "individual vars" : "DATABASE_URL",
+  });
+
+  // ── Diagnostic: test a direct connection ──────────────────────────
+  mariadb
+    .createConnection({
+      host: creds.host,
+      port: creds.port,
+      user: creds.user,
+      password: creds.password,
+      database: creds.database,
+      connectTimeout: 10_000,
+    })
+    .then((conn) => {
+      console.log("[DB] ✅ Direct connection test SUCCEEDED");
+      conn.end();
+    })
+    .catch((err) => {
+      console.error("[DB] ❌ Direct connection FAILED:", err.message);
+      console.error("[DB] Error code:", err.code, "| errno:", err.errno);
+    });
+
+  // Shared hosting (Hostinger) has tight MySQL connection limits.
+  const adapter = new PrismaMariaDb({
+    connectionLimit: 3,
+    idleTimeout: 30,
+    connectTimeout: 30_000,
+    acquireTimeout: 30_000,
+    ...creds,
+  });
+
+  return new PrismaClient({ adapter });
+}
+
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 // Reuse one client across hot reloads in development; production gets a fresh
@@ -105,4 +96,3 @@ export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
-
