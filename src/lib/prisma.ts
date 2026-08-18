@@ -1,5 +1,6 @@
 import { PrismaClient } from "../generated/prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import mariadb from "mariadb";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -15,6 +16,34 @@ function createPrismaClient() {
   }
 
   const creds = parseConnectionString(url);
+
+  // ── Diagnostic: log parsed credentials (password masked) ──────────
+  console.log("[DB] Connecting with:", {
+    host: creds.host,
+    port: creds.port,
+    user: creds.user,
+    password: creds.password ? "***" + creds.password.slice(-3) : "(empty)",
+    database: creds.database,
+  });
+
+  // ── Diagnostic: test a raw connection to surface the real error ────
+  mariadb
+    .createConnection({
+      host: creds.host,
+      port: creds.port,
+      user: creds.user,
+      password: creds.password,
+      database: creds.database,
+      connectTimeout: 10_000,
+    })
+    .then((conn) => {
+      console.log("[DB] ✅ Direct connection test SUCCEEDED");
+      conn.end();
+    })
+    .catch((err) => {
+      console.error("[DB] ❌ Direct connection test FAILED:", err.message);
+      console.error("[DB] Error code:", err.code, "| errno:", err.errno);
+    });
 
   // Shared hosting (Hostinger) has tight MySQL connection limits.
   // Keep the pool small to stay within quota, and give the DB more
@@ -61,3 +90,4 @@ export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
+
