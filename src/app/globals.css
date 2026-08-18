@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #123B3A;
+  --color-accent: #B77A5A;
+  --color-primary-dark: #1E2928;
+  --color-background: #ffffff;
+  --color-foreground: #171717;
+}
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-accent: var(--color-accent);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  /* Feeds the font-sans utility. `inline` keeps this out of the emitted
+     custom properties, so the body rule below names the fonts directly. */
+  --font-sans: var(--font-arabic), var(--font-latin), system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  /* Arabic first: Tajawal carries both scripts, so an Arabic page stays in
+     one voice and Latin falls through to Poppins only where a glyph is
+     missing. Matches the logo's geometric wordmark. */
+  font-family: var(--font-arabic), var(--font-latin), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* English pages lead with Poppins, which mirrors the Latin lockup. */
+html[lang="en"] body {
+  font-family: var(--font-latin), var(--font-arabic), system-ui, sans-serif;
+}
+
+/* Wrong verification code: a short shake alongside the red boxes. */
+@keyframes otp-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+.animate-otp-shake {
+  animation: otp-shake 0.4s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-otp-shake {
+    animation: none;
+  }
+}

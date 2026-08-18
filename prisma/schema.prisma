@@ -1,0 +1,327 @@
+// Prisma Schema — Razeem Real Estate (رزيم العقارية)
+// Database: SQLite (development) → MySQL/MariaDB (production)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ============================================
+// 1. Users (المستخدمين)
+// ============================================
+model User {
+  id               String   @id @default(cuid())
+  name             String
+  phone            String   @unique
+  /// scrypt digest; null for accounts created before passwords existed —
+  /// those sign in by resetting through the verification code.
+  passwordHash     String?
+  isNafathVerified Boolean  @default(false)
+  role             String   @default("USER") // USER | COMPANY_ADMIN
+
+  /// Consecutive failed sign-ins, cleared on success. Guards against someone
+  /// working through a list of likely passwords.
+  failedLogins Int       @default(0)
+  lockedUntil  DateTime?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  properties         Property[]
+  propertyRequests   PropertyRequest[]
+  managementRequests ManagementRequest[]
+  marketingRequests  MarketingRequest[]
+  notifications      Notification[]
+  favorites          Favorite[]
+
+  @@index([phone])
+}
+
+// ============================================
+// 2. OTP Sessions (رموز التحقق)
+// ============================================
+model OtpSession {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([phone, verified])
+}
+
+// ============================================
+// 3. Properties (العقارات المعروضة)
+// ============================================
+model Property {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  /// One of PROPERTY_CATEGORIES in lib/property-categories.ts
+  category        String
+  type            String   // RENT | SALE
+  price           Float
+  area            Float
+  /// Room counts. Which of these a listing is asked for depends on its
+  /// category — see lib/property-categories.ts. Land has none of them.
+  bedrooms    Int @default(0)
+  livingRooms Int @default(0)
+  halls       Int @default(0)
+  bathrooms   Int @default(0)
+  /// PENDING | APPROVED | REJECTED — the moderation state, set by the admin.
+  status          String   @default("PENDING")
+  rejectionReason String?
+  publisherType   String   // COMPANY | VERIFIED_USER
+  views           Int      @default(0)
+
+  /// Set by the publisher once the deal closes: SOLD | RENTED, else null.
+  /// Kept separate from `status` so moderation and availability stay
+  /// independent — a sold listing is still an approved one.
+  dealStatus   String?
+  /// When the deal was marked closed, for reporting on completed deals.
+  dealClosedAt DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // --- Location ---
+  region           String? // one of SAUDI_REGIONS
+  city             String
+  district         String
+  latitude         Float?
+  longitude        Float?
+  /// Address text resolved from the map pin by reverse geocoding.
+  formattedAddress String?
+  /// Places API result cached as JSON so Google is queried once, not per visit.
+  nearbyPlaces     String?
+
+  // --- Contact ---
+  /// Saudi mobile for WhatsApp; falls back to the publisher's phone when unset.
+  whatsapp String?
+
+  // --- Property facts ---
+  /// Age in years; 0 means brand new. Null when the publisher did not say.
+  ageYears Int?
+  /// Compass direction the property faces — one of PROPERTY_FACADES.
+  facade   String?
+
+  // --- Pricing ---
+  /// Percentage off `price`, 1–90. Null when there is no active discount.
+  discountPercent Float?
+
+  // --- Legal status ---
+  hasRestrictions      Boolean @default(false) // قيود
+  hasMortgage          Boolean @default(false) // رهن
+  hasWaqf              Boolean @default(false) // وقف
+  hasWill              Boolean @default(false) // وصية
+  registryRestrictions String? // قيود السجل العقاري
+  obligations          String? // الالتزامات على العقار
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  images    PropertyImage[]
+  videos    PropertyVideo[]
+  favorites Favorite[]
+
+  @@index([status, dealStatus])
+  @@index([status, publisherType])
+  @@index([city, category, type])
+  @@index([region])
+  @@index([price])
+  @@index([userId])
+}
+
+// ============================================
+// 4. Property Images (صور العقارات)
+// ============================================
+model PropertyImage {
+  id           String   @id @default(cuid())
+  url          String
+  thumbnailUrl String
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+}
+
+// ============================================
+// 4b. Property Videos (فيديوهات العقارات)
+// ============================================
+model PropertyVideo {
+  id String @id @default(cuid())
+  url String
+  /// Poster frame captured in the browser before upload.
+  thumbnailUrl String?
+  /// Bytes, kept so the admin can spot oversized uploads.
+  sizeBytes    Int?
+  /// Seconds, measured in the browser at selection time.
+  durationSec  Int?
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+}
+
+// ============================================
+// 5. Property Requests (العقارات المطلوبة)
+// ============================================
+model PropertyRequest {
+  id              String   @id @default(cuid())
+  title           String
+  /// One of PROPERTY_CATEGORIES in lib/property-categories.ts
+  category        String
+  /// RENT | SALE — what the seeker wants to do.
+  type            String   @default("SALE")
+  region          String?
+  city            String
+  district        String
+  budget          Float
+  status          String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  rejectionReason String?
+  publisherType   String   // COMPANY | VERIFIED_USER
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  /// Saudi mobile for WhatsApp; falls back to the requester's phone when unset.
+  whatsapp String?
+  /// Preferred age of the property being sought, in years; 0 means new.
+  ageYears Int?
+
+  /// Desired room counts, shown only for categories where they apply.
+  bedrooms    Int?
+  livingRooms Int?
+  halls       Int?
+  bathrooms   Int?
+
+  /// Where the seeker dropped a pin, if they did.
+  latitude         Float?
+  longitude        Float?
+  formattedAddress String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([userId])
+}
+
+// ============================================
+// 6. Management Requests (طلبات إدارة الأملاك)
+// ============================================
+model ManagementRequest {
+  id           String   @id @default(cuid())
+  ownerName    String
+  phone        String
+  propertyType String
+  city         String
+  district     String
+  notes        String?
+  status       String   @default("NEW") // NEW | CONTACTED | CLOSED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([userId])
+}
+
+// ============================================
+// 8. Marketing Requests (طلبات تسويق العقار)
+// ============================================
+model MarketingRequest {
+  id           String  @id @default(cuid())
+  ownerName    String
+  phone        String
+  whatsapp     String?
+  category     String // one of PROPERTY_CATEGORIES
+  purpose      String  @default("SALE") // SALE | RENT — marketing to sell or to let
+  region       String?
+  city         String
+  district     String
+  area         Float?
+  expectedPrice Float?
+  notes        String?
+
+  status    String   @default("NEW") // NEW | CONTACTED | CLOSED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([userId])
+}
+
+// ============================================
+// 9. Notifications (الإشعارات)
+// ============================================
+model Notification {
+  id   String @id @default(cuid())
+  type String // see NOTIFICATION_TYPES in lib/notifications
+
+  /**
+   * Notifications are stored as a translation key plus its parameters rather
+   * than finished text, so the same row reads correctly in Arabic and in
+   * English depending on who is looking at it.
+   */
+  titleKey String
+  bodyKey  String
+  params   String? // JSON object of interpolation values
+  link     String? // in-app path, without the locale prefix
+
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+}
+
+// ============================================
+// 10. Contact Messages (رسائل التواصل)
+// ============================================
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isRead, createdAt])
+}
+
+// ============================================
+// 7. Favorites (المفضلات)
+// ============================================
+model Favorite {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId])
+  @@index([userId])
+}
