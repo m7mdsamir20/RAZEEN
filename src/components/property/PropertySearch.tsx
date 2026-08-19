@@ -79,8 +79,10 @@ export function PropertySearch({
           placeholder={t("search.placeholder")}
           aria-label={t("search.label")}
           maxLength={100}
-          className={`w-full ps-12 ${term ? "pe-12" : "pe-4"} py-3 text-base bg-white border rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-[border-color,box-shadow] min-h-[52px] ${
-            isHero ? "border-transparent shadow-sm" : "border-gray-300"
+          className={`w-full ps-12 ${term ? "pe-12" : "pe-4"} py-3 text-base bg-white rounded-xl text-gray-900 placeholder:text-gray-400 border focus:outline-none focus-visible:ring-2 focus-visible:outline-none transition-[border-color,box-shadow] min-h-[52px] ${
+            isHero
+              ? "border-white/20 shadow-lg focus-visible:ring-white/50 focus-visible:border-white"
+              : "border-gray-300 focus-visible:ring-primary/20 focus-visible:border-primary"
           }`}
         />
 
@@ -98,8 +100,10 @@ export function PropertySearch({
 
       <button
         type="submit"
-        className={`flex items-center justify-center gap-2 px-6 py-3 text-base font-medium text-white bg-primary rounded-xl border border-transparent hover:bg-primary/90 transition-colors focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:outline-none min-h-[52px] ${
-          isHero ? "" : "shrink-0"
+        className={`flex items-center justify-center gap-2 px-7 py-3 text-base font-semibold text-white bg-accent rounded-xl border border-transparent hover:bg-accent/90 transition-colors focus-visible:ring-2 focus-visible:outline-none min-h-[52px] ${
+          isHero
+            ? "focus-visible:ring-white/50 shadow-lg"
+            : "shrink-0 focus-visible:ring-accent/30"
         }`}
       >
         <Search className="w-5 h-5" aria-hidden="true" />
