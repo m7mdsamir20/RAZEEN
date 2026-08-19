@@ -17,11 +17,36 @@ import { toE164, type SmsPayload, type SmsResult } from "../index";
  */
 const ENDPOINT = "https://api.authentica.sa/api/v2/send-otp";
 
+/**
+ * The key looks like `$2y$10$...`. In a .env file each `$` has to be escaped
+ * as `\$`, because the loader would otherwise read it as a variable — but a
+ * hosting panel takes the value literally, and pasting the escaped form there
+ * sends backslashes the API rejects as Unauthorized.
+ *
+ * A backslash never appears in a real key, so stripping them is safe and turns
+ * an easy copy-paste mistake into a warning instead of a silent outage.
+ */
+function readApiKey(): string | undefined {
+  const raw = process.env.AUTHENTICA_API_KEY;
+  if (!raw) return undefined;
+
+  const cleaned = raw.replace(/\\/g, "").trim();
+
+  if (cleaned !== raw.trim()) {
+    console.warn(
+      "AUTHENTICA_API_KEY contained backslashes; they were stripped. " +
+        "Store the key without escaping outside of .env files."
+    );
+  }
+
+  return cleaned;
+}
+
 export async function sendViaAuthentica(
   phone: string,
   payload: SmsPayload
 ): Promise<SmsResult> {
-  const apiKey = process.env.AUTHENTICA_API_KEY;
+  const apiKey = readApiKey();
   const templateId = process.env.AUTHENTICA_TEMPLATE_ID;
 
   if (!apiKey) {

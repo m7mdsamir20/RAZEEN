@@ -306,10 +306,11 @@ export function LoginModal({ onClose, onSuccess }: LoginModalProps) {
     >
       <div
         ref={modalRef}
-        className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto"
+        className="flex flex-col w-full max-w-md max-h-[90vh] bg-white rounded-2xl shadow-xl overflow-hidden"
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 p-5 border-b border-gray-100">
+        {/* Header — stays put while the body scrolls, so the title and the
+            close button are always reachable */}
+        <div className="flex items-start justify-between gap-3 p-5 border-b border-gray-100 shrink-0">
           <div>
             <h2
               id="login-modal-title"
@@ -328,7 +329,7 @@ export function LoginModal({ onClose, onSuccess }: LoginModalProps) {
           </button>
         </div>
 
-        <div className="p-5">
+        <div className="p-5 overflow-y-auto overscroll-contain">
           {/* Step: identify — the fields differ per mode */}
           {step === "identify" && (
             <form
