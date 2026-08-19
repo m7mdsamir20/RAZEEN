@@ -1,10 +1,10 @@
 /**
  * Single source of truth for the company's public details.
  *
- * ⚠️ PLACEHOLDER DATA — replace every value in CONTACT and SOCIAL with the
- * real ones before going live. Everything that renders contact information
- * (footer, contact page, JSON-LD, sitemap) reads from here, so changing a
- * value in this file updates the whole site.
+ * Everything that renders contact information — footer, contact page,
+ * JSON-LD — reads from here, so changing a value here updates the whole site.
+ *
+ * ⚠️ The address, coordinates and social links below are still placeholders.
  */
 
 /**
@@ -18,11 +18,11 @@ export const SITE_URL =
   "http://localhost:3000";
 
 export const CONTACT = {
-  email: "info@razeem.sa",
-  phone: "+966500000001",
+  email: "info@razeemre.com",
+  phone: "+966540905350",
   /** Same number, formatted for display. */
-  phoneDisplay: "+966 50 000 0001",
-  whatsapp: "+966500000001",
+  phoneDisplay: "+966 54 090 5350",
+  whatsapp: "+966540905350",
   /** Street and district only — city and country are appended separately. */
   addressAr: "طريق الملك فهد، حي العليا",
   addressEn: "King Fahd Road, Al Olaya",

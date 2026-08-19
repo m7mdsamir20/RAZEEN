@@ -5,6 +5,8 @@ import { parseCategoryParam } from "@/lib/property-categories";
 export const PAGE_SIZE = 12;
 
 export interface PropertyQuery {
+  /** Free-text search across the title, description and location. */
+  q?: string;
   category?: string;
   type?: string;
   region?: string;
@@ -39,7 +41,12 @@ export function parsePropertyQuery(
   const category = single("category");
   const type = single("type");
 
+  // Trimmed and capped: a very long term is a mistake or an attack, and
+  // either way it cannot match anything useful.
+  const q = single("q")?.trim().slice(0, 100) || undefined;
+
   return {
+    q,
     category: parseCategoryParam(category),
     type: PROPERTY_TYPES.includes(type as (typeof PROPERTY_TYPES)[number])
       ? type
@@ -66,6 +73,17 @@ export async function getProperties(query: PropertyQuery) {
     status: "APPROVED",
     dealStatus: null,
   };
+
+  // Matches any of the fields a person would think to type into a search box.
+  // MySQL's default collation is case-insensitive, so `contains` is enough.
+  if (query.q) {
+    where.OR = [
+      { title: { contains: query.q } },
+      { description: { contains: query.q } },
+      { city: { contains: query.q } },
+      { district: { contains: query.q } },
+    ];
+  }
 
   if (query.category) where.category = query.category;
   if (query.type) where.type = query.type;

@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { PropertyFilters } from "@/components/property/PropertyFilters";
 import { PropertyGrid } from "@/components/property/PropertyGrid";
+import { PropertySearch } from "@/components/property/PropertySearch";
 import { getProperties, parsePropertyQuery } from "@/lib/queries/properties";
 import { getFavoriteIds } from "@/lib/queries/account";
 import { getSession } from "@/lib/session";
@@ -58,8 +59,21 @@ export default async function PropertiesPage({
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
           {t("properties.title")}
         </h1>
-        <p className="text-base text-gray-500">{t("properties.subtitle")}</p>
+        <p className="text-base text-gray-500">
+          {query.q ? t("search.resultsFor", { term: query.q }) : t("properties.subtitle")}
+        </p>
       </header>
+
+      {/* Search sits above the results, spanning both columns */}
+      <div className="mb-6">
+        <Suspense
+          fallback={
+            <div className="h-[52px] bg-gray-100 rounded-xl animate-pulse" />
+          }
+        >
+          <PropertySearch variant="inline" />
+        </Suspense>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
         <aside className="lg:sticky lg:top-20 lg:self-start">

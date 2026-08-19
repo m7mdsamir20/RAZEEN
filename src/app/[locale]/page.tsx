@@ -9,6 +9,7 @@ import { getPropertyRequests } from "@/lib/queries/requests";
 import { getFavoriteIds } from "@/lib/queries/account";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { RequestCard } from "@/components/request/RequestCard";
+import { PropertySearch } from "@/components/property/PropertySearch";
 
 const PREVIEW_COUNT = 6;
 
@@ -59,6 +60,10 @@ export default async function HomePage({
           <p className="text-base sm:text-lg text-white/80 max-w-2xl mx-auto mb-8">
             {t("home.heroSubtitle")}
           </p>
+
+          <div className="mb-6">
+            <PropertySearch />
+          </div>
 
           <div className="flex flex-col sm:flex-row justify-center gap-3 mb-10">
             <Link

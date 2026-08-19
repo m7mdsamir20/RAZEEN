@@ -929,5 +929,15 @@
     "ctaTitle": "Ready to put your property in front of thousands of searchers?",
     "ctaSubtitle": "Send your property details today and our marketing team will contact you within one business day.",
     "ctaButton": "Market your property now"
+  },
+  "search": {
+    "label": "Search properties",
+    "placeholder": "Search by district, city or property type...",
+    "submit": "Search",
+    "clear": "Clear search",
+    "resultsFor": "Results for “{term}”",
+    "noResults": "No results for “{term}”",
+    "noResultsDesc": "Try fewer words, or clear the search to see every property.",
+    "clearSearch": "Clear search"
   }
 }
