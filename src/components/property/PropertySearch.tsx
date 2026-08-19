@@ -68,7 +68,9 @@ export function PropertySearch({
     >
       <div className="relative flex-1">
         <Search
-          className="absolute start-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+          className={`absolute start-4 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none ${
+            isHero ? "text-white/70" : "text-gray-400"
+          }`}
           aria-hidden="true"
         />
 
@@ -79,10 +81,14 @@ export function PropertySearch({
           placeholder={t("search.placeholder")}
           aria-label={t("search.label")}
           maxLength={100}
-          className={`w-full ps-12 ${term ? "pe-12" : "pe-4"} py-3 text-base bg-white rounded-xl text-gray-900 placeholder:text-gray-400 border focus:outline-none focus-visible:ring-2 focus-visible:outline-none transition-[border-color,box-shadow] min-h-[52px] ${
+          // The native WebKit clear button would sit alongside our own, and it
+          // is drawn dark — invisible on the hero. Ours is the only one.
+          className={`w-full ps-12 ${term ? "pe-12" : "pe-4"} py-3 text-base rounded-xl border focus:outline-none focus-visible:ring-2 focus-visible:outline-none transition-[border-color,box-shadow] min-h-[52px] [&::-webkit-search-cancel-button]:appearance-none ${
             isHero
-              ? "border-white/20 shadow-lg focus-visible:ring-white/50 focus-visible:border-white"
-              : "border-gray-300 focus-visible:ring-primary/20 focus-visible:border-primary"
+              ? // Frosted over the hero's scrim, which is dark enough for
+                // white text to stay legible.
+                "bg-white/10 backdrop-blur-md border-white/25 text-white placeholder:text-white/60 shadow-lg focus-visible:ring-white/50 focus-visible:border-white/60"
+              : "bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus-visible:ring-primary/20 focus-visible:border-primary"
           }`}
         />
 
@@ -91,7 +97,11 @@ export function PropertySearch({
             type="button"
             onClick={clear}
             aria-label={t("search.clear")}
-            className="absolute end-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-11 h-11 text-gray-400 hover:text-gray-600 rounded-lg focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:outline-none"
+            className={`absolute end-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-11 h-11 rounded-lg focus-visible:ring-2 focus-visible:outline-none ${
+              isHero
+                ? "text-white/70 hover:text-white focus-visible:ring-white/50"
+                : "text-gray-400 hover:text-gray-600 focus-visible:ring-primary/20"
+            }`}
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
