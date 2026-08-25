@@ -28,7 +28,7 @@ import { PropertyMap } from "@/components/map/PropertyMap";
 import { PropertyAgeBadge } from "@/components/property/PropertyAgeBadge";
 import { DealStatusBadge } from "@/components/property/DealStatusActions";
 import { NearbyPlaces } from "@/components/property/NearbyPlaces";
-import { facadeLabelKey } from "@/components/property/PropertyExtraFields";
+import { facadeLabelKey } from "@/lib/property-facades";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL } from "@/lib/site";
 import { propertySchema, breadcrumbSchema } from "@/lib/structured-data";

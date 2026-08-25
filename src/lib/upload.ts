@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp, { type Sharp } from "sharp";
+import { propertyMediaDir, propertyMediaUrl } from "@/lib/media-storage";
 
 export const MAX_IMAGES_PER_PROPERTY = 10;
 export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -189,8 +190,7 @@ export async function processAndSaveImage(
   propertyId: string,
   index: number
 ): Promise<ProcessedImage> {
-  const relativeDir = path.posix.join("uploads", "properties", propertyId);
-  const absoluteDir = path.join(process.cwd(), "public", relativeDir);
+  const absoluteDir = propertyMediaDir(propertyId);
 
   await mkdir(absoluteDir, { recursive: true });
 
@@ -229,7 +229,7 @@ export async function processAndSaveImage(
   ]);
 
   return {
-    url: `/${relativeDir}/${fullName}`,
-    thumbnailUrl: `/${relativeDir}/${thumbName}`,
+    url: propertyMediaUrl(propertyId, fullName),
+    thumbnailUrl: propertyMediaUrl(propertyId, thumbName),
   };
 }

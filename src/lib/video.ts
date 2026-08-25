@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { propertyMediaDir, propertyMediaUrl } from "@/lib/media-storage";
 
 export const MAX_VIDEOS_PER_PROPERTY = 2;
 export const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
@@ -51,8 +52,7 @@ export async function saveVideo(
   index: number,
   mimeType: string
 ): Promise<SavedVideo> {
-  const relativeDir = path.posix.join("uploads", "properties", propertyId);
-  const absoluteDir = path.join(process.cwd(), "public", relativeDir);
+  const absoluteDir = propertyMediaDir(propertyId);
 
   await mkdir(absoluteDir, { recursive: true });
 
@@ -61,5 +61,5 @@ export async function saveVideo(
 
   await writeFile(path.join(absoluteDir, fileName), buffer);
 
-  return { url: `/${relativeDir}/${fileName}`, extension };
+  return { url: propertyMediaUrl(propertyId, fileName), extension };
 }

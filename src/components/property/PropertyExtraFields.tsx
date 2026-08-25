@@ -5,15 +5,7 @@ import { FormField, FIELD_CLASS } from "@/components/ui/FormField";
 import { Riyal } from "@/components/ui/Riyal";
 import { formatAmount, discountedPrice } from "@/lib/utils";
 import { PROPERTY_FACADES } from "@/types";
-
-/** Maps a facade constant to its translation key. */
-export function facadeLabelKey(facade: string): string {
-  const suffix = facade
-    .split("_")
-    .map((part) => part[0] + part.slice(1).toLowerCase())
-    .join("");
-  return `propertyExtra.facade${suffix}`;
-}
+import { facadeLabelKey } from "@/lib/property-facades";
 
 export interface ExtraFieldsValue {
   whatsapp: string;

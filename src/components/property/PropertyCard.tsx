@@ -19,7 +19,7 @@ import { Price, DiscountBadge } from "@/components/ui/Price";
 import { FavoriteButton } from "./FavoriteButton";
 import { PropertyAgeBadge } from "./PropertyAgeBadge";
 import { DealStatusBadge } from "./DealStatusActions";
-import { facadeLabelKey } from "./PropertyExtraFields";
+import { facadeLabelKey } from "@/lib/property-facades";
 import type { PropertyListItem } from "@/lib/queries/properties";
 
 interface PropertyCardProps {

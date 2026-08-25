@@ -13,7 +13,8 @@
     "db:reset": "prisma db push --force-reset && npx tsx prisma/seed.ts",
     "backfill:locations": "npx tsx scripts/backfill-locations.ts",
     "postinstall": "prisma generate",
-    "make:admin": "npx tsx scripts/make-admin.ts"
+    "make:admin": "npx tsx scripts/make-admin.ts",
+    "migrate:media": "npx tsx scripts/migrate-media-urls.ts"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
