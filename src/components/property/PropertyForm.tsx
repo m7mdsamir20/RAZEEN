@@ -177,18 +177,19 @@ export function PropertyForm({
     setSubmitError("");
   }
 
-  /**
-   * Fill region, city and district from the map pin. Only overwrites fields
-   * the publisher has not already filled, so a deliberate correction is not
-   * undone by dragging the pin.
-   */
+  /** Fill region, city and district from the map pin. */
   function applyResolvedAddress(resolved: ResolvedPlace) {
     setFormattedAddress(resolved.formattedAddress);
 
+    // The pin fills what is still blank; it never overwrites a choice already
+    // made. Dropping a pin is how someone marks the exact spot after picking
+    // the area by hand, and Google's own answer is often a neighbouring town
+    // that is not in our list — so overwriting would wipe a deliberate
+    // selection and leave the selects showing nothing.
     setPlace((current) => ({
-      region: resolved.region ?? current.region,
-      city: resolved.city ?? current.city,
-      district: current.district || (resolved.district ?? ""),
+      region: current.region || resolved.region || "",
+      city: current.city || resolved.city || "",
+      district: current.district || resolved.district || "",
     }));
   }
 

@@ -55,10 +55,17 @@ export function PropertyCard({
     >
       {/* Image */}
       <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+        {/* `unoptimized` is required, not a shortcut: Next's optimizer reads
+            the public directory as it stood at build time, so a photo
+            uploaded afterwards comes back "not a valid image". Uploads are
+            already converted to webp and thumbnailed on the way in, so there
+            is nothing left for the optimizer to do. It also lets the
+            placeholder SVG through, which the optimizer refuses by default. */}
         <Image
           src={thumbnailUrl}
           alt={property.title}
           fill
+          unoptimized
           onError={() => setImageFailed(true)}
           className="object-cover group-hover:scale-105 transition-transform duration-300"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

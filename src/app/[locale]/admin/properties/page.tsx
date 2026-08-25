@@ -98,6 +98,7 @@ export default async function AdminPropertiesPage({
                       src={thumbnail}
                       alt=""
                       fill
+                      unoptimized
                       className="object-cover"
                       sizes="160px"
                     />

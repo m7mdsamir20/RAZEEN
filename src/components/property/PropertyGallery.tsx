@@ -51,6 +51,7 @@ export function PropertyGallery({ images, title }: PropertyGalleryProps) {
           src={srcFor(activeIndex)}
           alt={`${title} — ${activeIndex + 1}/${images.length}`}
           fill
+          unoptimized
           priority
           onError={() => markFailed(activeIndex)}
           className="object-cover"
@@ -109,6 +110,7 @@ export function PropertyGallery({ images, title }: PropertyGalleryProps) {
                 }
                 alt=""
                 fill
+                unoptimized
                 onError={() => markFailed(index)}
                 className="object-cover"
                 sizes="80px"

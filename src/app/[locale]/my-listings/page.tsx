@@ -120,6 +120,7 @@ export default async function MyListingsPage({
                     src={thumbnail}
                     alt=""
                     fill
+                    unoptimized
                     className="object-cover"
                     sizes="128px"
                   />
