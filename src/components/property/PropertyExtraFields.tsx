@@ -19,12 +19,6 @@ export interface ExtraFieldsValue {
   whatsapp: string;
   ageYears: string;
   facade: string;
-  hasRestrictions: boolean;
-  hasMortgage: boolean;
-  hasWaqf: boolean;
-  hasWill: boolean;
-  registryRestrictions: string;
-  obligations: string;
   discountPercent: string;
 }
 
@@ -32,12 +26,6 @@ export const EMPTY_EXTRA_FIELDS: ExtraFieldsValue = {
   whatsapp: "",
   ageYears: "",
   facade: "",
-  hasRestrictions: false,
-  hasMortgage: false,
-  hasWaqf: false,
-  hasWill: false,
-  registryRestrictions: "",
-  obligations: "",
   discountPercent: "",
 };
 
@@ -60,16 +48,6 @@ export function extraFieldsPayload(
     ...(value.whatsapp ? { whatsapp: value.whatsapp } : {}),
     ...(value.ageYears !== "" && Number.isFinite(age) ? { ageYears: age } : {}),
     ...(value.facade ? { facade: value.facade } : {}),
-    hasRestrictions: value.hasRestrictions,
-    hasMortgage: value.hasMortgage,
-    hasWaqf: value.hasWaqf,
-    hasWill: value.hasWill,
-    ...(value.registryRestrictions.trim()
-      ? { registryRestrictions: value.registryRestrictions.trim() }
-      : {}),
-    ...(value.obligations.trim()
-      ? { obligations: value.obligations.trim() }
-      : {}),
     ...(includeDiscount
       ? {
           discountPercent:
@@ -86,24 +64,12 @@ export function extraFieldsFromProperty(property: {
   whatsapp: string | null;
   ageYears: number | null;
   facade: string | null;
-  hasRestrictions: boolean;
-  hasMortgage: boolean;
-  hasWaqf: boolean;
-  hasWill: boolean;
-  registryRestrictions: string | null;
-  obligations: string | null;
   discountPercent: number | null;
 }): ExtraFieldsValue {
   return {
     whatsapp: property.whatsapp ?? "",
     ageYears: property.ageYears === null ? "" : String(property.ageYears),
     facade: property.facade ?? "",
-    hasRestrictions: property.hasRestrictions,
-    hasMortgage: property.hasMortgage,
-    hasWaqf: property.hasWaqf,
-    hasWill: property.hasWill,
-    registryRestrictions: property.registryRestrictions ?? "",
-    obligations: property.obligations ?? "",
     discountPercent:
       property.discountPercent === null ? "" : String(property.discountPercent),
   };
@@ -121,7 +87,7 @@ interface Props {
 }
 
 /**
- * Contact, age/facade, legal status and (optionally) discount.
+ * Contact, age/facade and (optionally) discount.
  * Shared by the create and edit forms so the two never drift apart.
  */
 export function PropertyExtraFields({
@@ -141,13 +107,6 @@ export function PropertyExtraFields({
   ) => onChange({ ...value, [key]: next });
 
   const id = (name: string) => `${idPrefix}${name}`;
-
-  const legalToggles = [
-    { key: "hasRestrictions", labelKey: "propertyExtra.hasRestrictions" },
-    { key: "hasMortgage", labelKey: "propertyExtra.hasMortgage" },
-    { key: "hasWaqf", labelKey: "propertyExtra.hasWaqf" },
-    { key: "hasWill", labelKey: "propertyExtra.hasWill" },
-  ] as const;
 
   const discountValue = Number(value.discountPercent);
   const hasPreviewableDiscount =
@@ -227,68 +186,6 @@ export function PropertyExtraFields({
           <p className="text-xs text-gray-500 mt-1">
             {t("propertyExtra.whatsappHint")}
           </p>
-        </div>
-      </section>
-
-      {/* Legal status */}
-      <section className="bg-white border border-gray-200 rounded-2xl p-5">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">
-          {t("propertyExtra.legalSection")}
-        </h2>
-        <p className="text-sm text-gray-500 mb-4">
-          {t("propertyExtra.legalHint")}
-        </p>
-
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-          {legalToggles.map(({ key, labelKey }) => (
-            <li key={key}>
-              <label
-                htmlFor={id(key)}
-                className="flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-xl cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-[background-color,border-color] min-h-[48px]"
-              >
-                <input
-                  id={id(key)}
-                  type="checkbox"
-                  checked={value[key]}
-                  onChange={(e) => set(key, e.target.checked)}
-                  className="w-5 h-5 rounded border-gray-300 text-primary focus-visible:ring-2 focus-visible:ring-primary/20"
-                />
-                <span className="text-base text-gray-800">{t(labelKey)}</span>
-              </label>
-            </li>
-          ))}
-        </ul>
-
-        <div className="space-y-4">
-          <FormField
-            id={id("registryRestrictions")}
-            label={t("propertyExtra.registryRestrictions")}
-          >
-            <textarea
-              id={id("registryRestrictions")}
-              value={value.registryRestrictions}
-              onChange={(e) => set("registryRestrictions", e.target.value)}
-              placeholder={t("propertyExtra.registryPlaceholder")}
-              rows={3}
-              maxLength={1000}
-              className={`${FIELD_CLASS} resize-y`}
-            />
-          </FormField>
-
-          <FormField
-            id={id("obligations")}
-            label={t("propertyExtra.obligations")}
-          >
-            <textarea
-              id={id("obligations")}
-              value={value.obligations}
-              onChange={(e) => set("obligations", e.target.value)}
-              placeholder={t("propertyExtra.obligationsPlaceholder")}
-              rows={3}
-              maxLength={1000}
-              className={`${FIELD_CLASS} resize-y`}
-            />
-          </FormField>
         </div>
       </section>
 

@@ -116,14 +116,6 @@ model Property {
   /// Percentage off `price`, 1–90. Null when there is no active discount.
   discountPercent Float?
 
-  // --- Legal status ---
-  hasRestrictions      Boolean @default(false) // قيود
-  hasMortgage          Boolean @default(false) // رهن
-  hasWaqf              Boolean @default(false) // وقف
-  hasWill              Boolean @default(false) // وصية
-  registryRestrictions String? // قيود السجل العقاري
-  obligations          String? // الالتزامات على العقار
-
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 

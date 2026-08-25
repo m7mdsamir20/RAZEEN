@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Lock, Eye, EyeOff, Check, X } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import {
   checkPassword,
   PASSWORD_RULE_ORDER,
@@ -42,7 +42,10 @@ export function PasswordField({
   const id = useId();
   const [isVisible, setIsVisible] = useState(false);
 
+  // Nothing to correct until something has been typed.
   const met = checkPassword(value);
+  const missing =
+    value.length > 0 ? PASSWORD_RULE_ORDER.filter((rule) => !met[rule]) : [];
 
   return (
     <div>
@@ -94,34 +97,24 @@ export function PasswordField({
         </p>
       ) : null}
 
-      {showRules ? (
-        <div className="mt-2">
-          <p className="text-xs text-gray-500 mb-1.5">
-            {t("auth.passwordRulesTitle")}
-          </p>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
-            {PASSWORD_RULE_ORDER.map((rule) => {
-              const done = met[rule];
-              const labelKey = `auth.rule${rule[0].toUpperCase()}${rule.slice(1)}`;
-
-              return (
-                <li
-                  key={rule}
-                  className={`flex items-center gap-1.5 text-xs ${
-                    done ? "text-green-700" : "text-gray-500"
-                  }`}
-                >
-                  {done ? (
-                    <Check className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                  ) : (
-                    <X className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                  )}
-                  {t(labelKey)}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+      {/* Only what is still missing, and only once there is something to
+          judge. An empty field shows nothing, and the list empties itself as
+          each rule is satisfied — so a valid password leaves no clutter. */}
+      {showRules && missing.length > 0 ? (
+        <ul
+          className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1"
+          aria-live="polite"
+        >
+          {missing.map((rule) => (
+            <li
+              key={rule}
+              className="flex items-center gap-1.5 text-xs text-amber-700"
+            >
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              {t(`auth.rule${rule[0].toUpperCase()}${rule.slice(1)}`)}
+            </li>
+          ))}
+        </ul>
       ) : null}
     </div>
   );

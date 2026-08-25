@@ -86,8 +86,7 @@
     "ruleLength": "At least 8 characters",
     "ruleLetter": "At least one letter",
     "ruleDigit": "At least one digit",
-    "ruleSymbol": "At least one symbol (! @ # $ ...)",
-    "passwordRulesTitle": "Your password must contain:"
+    "ruleSymbol": "At least one symbol (! @ # $ ...)"
   },
   "header": {
     "addListing": "Add listing",
@@ -532,16 +531,6 @@
     "facadeNorthWest": "North-west",
     "facadeSouthEast": "South-east",
     "facadeSouthWest": "South-west",
-    "legalSection": "Legal status",
-    "legalHint": "Mark what applies — it helps buyers decide",
-    "hasRestrictions": "Has restrictions",
-    "hasMortgage": "Has a mortgage",
-    "hasWaqf": "Has a waqf",
-    "hasWill": "Has a will",
-    "registryRestrictions": "Real estate registry restrictions",
-    "registryPlaceholder": "Describe any restrictions recorded on the property...",
-    "obligations": "Obligations on the property",
-    "obligationsPlaceholder": "Describe any financial or legal obligations...",
     "noneDeclared": "None",
     "legalClear": "No restrictions, mortgage or waqf declared",
     "discountSection": "Discount",

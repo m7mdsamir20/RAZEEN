@@ -92,14 +92,6 @@ export const createPropertySchema = z.object({
     .max(90, "Discount cannot exceed 90%")
     .optional(),
 
-  // --- Legal status ---
-  hasRestrictions: z.boolean().default(false),
-  hasMortgage: z.boolean().default(false),
-  hasWaqf: z.boolean().default(false),
-  hasWill: z.boolean().default(false),
-  registryRestrictions: z.string().max(1000).trim().optional().or(z.literal("")),
-  obligations: z.string().max(1000).trim().optional().or(z.literal("")),
-
   publisherType: z.enum(PUBLISHER_TYPES),
 });
 

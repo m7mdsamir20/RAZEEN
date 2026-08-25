@@ -25,7 +25,6 @@ import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 import { PropertyGallery } from "@/components/property/PropertyGallery";
 import { FavoriteButton } from "@/components/property/FavoriteButton";
 import { PropertyMap } from "@/components/map/PropertyMap";
-import { PropertyLegalStatus } from "@/components/property/PropertyLegalStatus";
 import { PropertyAgeBadge } from "@/components/property/PropertyAgeBadge";
 import { DealStatusBadge } from "@/components/property/DealStatusActions";
 import { NearbyPlaces } from "@/components/property/NearbyPlaces";
@@ -338,15 +337,6 @@ export default async function PropertyDetailPage({
               </div>
             </section>
           )}
-
-          <PropertyLegalStatus
-            hasRestrictions={property.hasRestrictions}
-            hasMortgage={property.hasMortgage}
-            hasWaqf={property.hasWaqf}
-            hasWill={property.hasWill}
-            registryRestrictions={property.registryRestrictions}
-            obligations={property.obligations}
-          />
 
           {/* Location — only when the listing was geocoded */}
           {property.latitude !== null && property.longitude !== null && (

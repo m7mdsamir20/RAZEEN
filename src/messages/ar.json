@@ -86,8 +86,7 @@
     "ruleLength": "8 أحرف على الأقل",
     "ruleLetter": "حرف واحد على الأقل",
     "ruleDigit": "رقم واحد على الأقل",
-    "ruleSymbol": "رمز واحد على الأقل (! @ # $ ...)",
-    "passwordRulesTitle": "يجب أن تحتوي كلمة المرور على:"
+    "ruleSymbol": "رمز واحد على الأقل (! @ # $ ...)"
   },
   "header": {
     "addListing": "إضافة إعلان",
@@ -532,16 +531,6 @@
     "facadeNorthWest": "شمالية غربية",
     "facadeSouthEast": "جنوبية شرقية",
     "facadeSouthWest": "جنوبية غربية",
-    "legalSection": "الحالة القانونية",
-    "legalHint": "حدّد ما ينطبق على العقار — يساعد المشتري على اتخاذ قراره",
-    "hasRestrictions": "يوجد قيود",
-    "hasMortgage": "يوجد رهن",
-    "hasWaqf": "يوجد وقف",
-    "hasWill": "توجد وصية",
-    "registryRestrictions": "قيود السجل العقاري",
-    "registryPlaceholder": "اذكر أي قيود مسجّلة على العقار...",
-    "obligations": "الالتزامات على العقار",
-    "obligationsPlaceholder": "اذكر أي التزامات مالية أو قانونية...",
     "noneDeclared": "لا يوجد",
     "legalClear": "لا توجد قيود أو رهون أو أوقاف معلنة",
     "discountSection": "الخصم",

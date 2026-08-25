@@ -48,12 +48,6 @@ export interface EditableProperty {
   whatsapp: string | null;
   ageYears: number | null;
   facade: string | null;
-  hasRestrictions: boolean;
-  hasMortgage: boolean;
-  hasWaqf: boolean;
-  hasWill: boolean;
-  registryRestrictions: string | null;
-  obligations: string | null;
   discountPercent: number | null;
 }
 
