@@ -15,7 +15,8 @@
     "postinstall": "prisma generate",
     "make:admin": "npx tsx scripts/make-admin.ts",
     "migrate:media": "npx tsx scripts/migrate-media-urls.ts",
-    "build:turbo": "next build"
+    "build:turbo": "next build",
+    "make:favicon": "node scripts/make-favicon.mjs"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
