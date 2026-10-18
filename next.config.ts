@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/webp"],
   },
+  experimental: {
+    // Trades a little build time for a lower peak heap. The shared hosting
+    // that builds this project has very little memory to spare.
+    webpackMemoryOptimizations: true,
+  },
 };
 
 export default withNextIntl(nextConfig);

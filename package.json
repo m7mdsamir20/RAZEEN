@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
@@ -14,7 +14,8 @@
     "backfill:locations": "npx tsx scripts/backfill-locations.ts",
     "postinstall": "prisma generate",
     "make:admin": "npx tsx scripts/make-admin.ts",
-    "migrate:media": "npx tsx scripts/migrate-media-urls.ts"
+    "migrate:media": "npx tsx scripts/migrate-media-urls.ts",
+    "build:turbo": "next build"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

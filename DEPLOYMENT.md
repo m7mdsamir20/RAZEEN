@@ -131,7 +131,28 @@ UPLOADS_DIR=/home/u368976627/uploads
 
 ---
 
-## 8. التحديثات اللاحقة
+## 8. لماذا يبني المشروع بـ Webpack
+
+أمر البناء هو `next build --webpack` وليس الافتراضي.
+
+الافتراضي في Next 16 هو Turbopack، وهو يشغّل معالج CSS في عملية Node
+منفصلة. حاوية البناء على الاستضافة المشتركة لا تسمح بذلك، فيفشل البناء عند
+`globals.css` برسالة:
+
+```
+node process exited before we could connect to it with exit status: 0
+TurbopackInternalError: [project]/src/app/globals.css
+```
+
+Webpack ينفّذ المعالجة داخل العملية نفسها، فلا تظهر المشكلة. ومعها
+`experimental.webpackMemoryOptimizations` في `next.config.ts` لتقليل أعلى
+استهلاك للذاكرة.
+
+للبناء محلياً بـ Turbopack (أسرع): `npm run build:turbo`
+
+---
+
+## 9. التحديثات اللاحقة
 
 ```bash
 git pull
